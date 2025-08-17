@@ -48,6 +48,7 @@ public partial class MainViewModel : ViewModelBase
 
             // 开始监听响应
             //_ = ListenForResponsesAsync(_discoverCts.Token);
+            DiscoveredDevices.Add(new DeviceInfo("demo"));
 
             // 设置10秒超时
             await Task.Delay(TimeSpan.FromSeconds(10));

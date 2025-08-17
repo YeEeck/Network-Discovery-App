@@ -31,11 +31,16 @@
                 Text="{Binding TargetPort, StringFormat='{}{0}'}"/>
 
 		<!-- 控制按钮 -->
-		<Button Grid.Row="1" Grid.ColumnSpan="2" Content="开始搜索"
-                Command="{Binding DiscoverCommand}"
-                HorizontalAlignment="Center"
-                Padding="20,8" Margin="10"
-                IsEnabled="{Binding IsNotDiscovering}"/>
+		<StackPanel Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
+			<Button Content="开始搜索"
+					Command="{Binding DiscoverCommand}"
+					Padding="20,8" Margin="10"
+					IsEnabled="{Binding DiscoverCommand.CanExecute}"/>
+
+			<Button Content="清除结果"
+					Command="{Binding ClearResultsCommand}"
+					Padding="20,8" Margin="10"/>
+		</StackPanel>
 
 		<!-- 搜索状态 -->
 		<StackPanel Grid.Row="2" Grid.ColumnSpan="2" Orientation="Horizontal" HorizontalAlignment="Center">
@@ -46,11 +51,19 @@
 
 		<!-- 结果列表 -->
 		<DataGrid Grid.Row="3" Grid.ColumnSpan="2" Margin="0,10"
-                  ItemsSource="{Binding DiscoveredDevices}"
-                  AutoGenerateColumns="False">
+          ItemsSource="{Binding DiscoveredDevices}"
+          AutoGenerateColumns="False"
+          IsReadOnly="True">
 			<DataGrid.Columns>
-				<DataGridTextColumn Header="IP地址" Binding="{Binding IpAddress}" Width="1*"/>
-				<DataGridTextColumn Header="发现时间" Binding="{Binding Timestamp}" Width="1*"/>
+				<DataGridTextColumn Header="IP地址" Binding="{Binding IpAddress}" Width="*" />
+				<DataGridTextColumn Header="发现时间" Binding="{Binding Timestamp}" Width="*" />
+				<DataGridTemplateColumn Width="Auto">
+					<DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<!-- 可选的额外操作列 -->
+						</DataTemplate>
+					</DataGridTemplateColumn.CellTemplate>
+				</DataGridTemplateColumn>
 			</DataGrid.Columns>
 		</DataGrid>
 
