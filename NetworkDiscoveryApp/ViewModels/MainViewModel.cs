@@ -18,6 +18,7 @@ public partial class MainViewModel : ViewModelBase
     private int _targetPort = 9999;
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DiscoverCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ClearResultsCommand))]
     private bool _isDiscovering;
     [ObservableProperty]
     private string _statusMessage = "准备就绪";
@@ -74,6 +75,8 @@ public partial class MainViewModel : ViewModelBase
 
     private bool CanDiscover() => !IsDiscovering && TargetPort > 0 && TargetPort <= 65535;
 
+    private bool CanDoClear() => !IsDiscovering;
+
     private void OnDeviceDiscovered(string ip)
     {
         Dispatcher.UIThread.Post(() =>
@@ -82,7 +85,7 @@ public partial class MainViewModel : ViewModelBase
         });
         DeviceDiscovered?.Invoke(this, ip);
     }
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanDoClear))]
     private void ClearResults()
     {
         DiscoveredDevices.Clear();

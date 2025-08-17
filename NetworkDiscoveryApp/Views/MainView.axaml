@@ -39,7 +39,8 @@
 
 			<Button Content="清除结果"
 					Command="{Binding ClearResultsCommand}"
-					Padding="20,8" Margin="10"/>
+					Padding="20,8" Margin="10"
+					IsEnabled="{Binding ClearResultsCommand.CanExecute}"/>
 		</StackPanel>
 
 		<!-- 搜索状态 -->
@@ -57,10 +58,11 @@
 			<DataGrid.Columns>
 				<DataGridTextColumn Header="IP地址" Binding="{Binding IpAddress}" Width="*" />
 				<DataGridTextColumn Header="发现时间" Binding="{Binding Timestamp}" Width="*" />
-				<DataGridTemplateColumn Width="Auto">
+				<DataGridTemplateColumn Header="操作" Width="Auto">
 					<DataGridTemplateColumn.CellTemplate>
 						<DataTemplate>
 							<!-- 可选的额外操作列 -->
+							<Button Margin="5">Copy</Button>
 						</DataTemplate>
 					</DataGridTemplateColumn.CellTemplate>
 				</DataGridTemplateColumn>
