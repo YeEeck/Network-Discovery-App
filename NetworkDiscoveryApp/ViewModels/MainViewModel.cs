@@ -8,6 +8,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using NetworkDiscovery;
 
 namespace NetworkDiscoveryApp.ViewModels;
 
@@ -40,19 +41,24 @@ public partial class MainViewModel : ViewModelBase
     {
         try
         {
+            using DiscoveryClient discoveryClient = new(TargetPort);
             IsDiscovering = true;
             DiscoveredDevices.Clear();
             StatusMessage = "搜索中...";
             Log = $"开始搜索端口 {TargetPort} 的设备...\n";
-
+            var discoveryTask = discoveryClient.StartDiscoveryAsync((string deviceIp) => {
+                DiscoveredDevices.Add(new DeviceInfo(deviceIp));
+            });
             Log += "发现请求已发送\n";
 
             // 开始监听响应
             //_ = ListenForResponsesAsync(_discoverCts.Token);
-            DiscoveredDevices.Add(new DeviceInfo("demo"));
+            
 
             // 设置10秒超时
             await Task.Delay(TimeSpan.FromSeconds(10));
+
+            discoveryClient.StopDiscovery();
 
             StatusMessage = $"发现完成，找到 {DiscoveredDevices.Count} 台设备";
             Log += $"设备发现完成，共找到 {DiscoveredDevices.Count} 台设备\n";
@@ -64,7 +70,7 @@ public partial class MainViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            StatusMessage = "发生错误";
+            StatusMessage = "发生错误" + $"错误: {ex.Message}\n";
             Log += $"错误: {ex.Message}\n";
         }
         finally
