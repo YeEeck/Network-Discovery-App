@@ -35,7 +35,15 @@
 			<Button Content="开始搜索"
 					Command="{Binding DiscoverCommand}"
 					Padding="20,8" Margin="10"
-					IsEnabled="{Binding DiscoverCommand.CanExecute}"/>
+					IsEnabled="{Binding DiscoverCommand.CanExecute}"
+					IsVisible="{Binding IsNotDiscovering}"
+					/>
+
+			<Button Content="停止搜索"
+					Command="{Binding StopDiscoveryWaitCommand}"
+					Padding="20,8" Margin="10"
+					IsEnabled="{Binding DiscoverCommand.CanExecute}"
+					IsVisible="{Binding IsDiscovering}"/>
 
 			<Button Content="清除结果"
 					Command="{Binding ClearResultsCommand}"

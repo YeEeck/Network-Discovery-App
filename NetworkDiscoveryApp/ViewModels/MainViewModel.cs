@@ -20,6 +20,7 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(DiscoverCommand))]
     [NotifyCanExecuteChangedFor(nameof(ClearResultsCommand))]
+    [NotifyPropertyChangedFor(nameof(IsNotDiscovering))]
     private bool _isDiscovering;
     [ObservableProperty]
     private string _statusMessage = "准备就绪";
@@ -28,6 +29,8 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private ObservableCollection<DeviceInfo> _discoveredDevices = new();
     public bool IsNotDiscovering => !IsDiscovering;
+
+    private CancellationTokenSource discoveryWaitCancellationTokenSource = new CancellationTokenSource();
 
     // 设备发现事件
     public event EventHandler<string> DeviceDiscovered;
@@ -46,28 +49,34 @@ public partial class MainViewModel : ViewModelBase
             DiscoveredDevices.Clear();
             StatusMessage = "搜索中...";
             Log = $"开始搜索端口 {TargetPort} 的设备...\n";
-            var discoveryTask = discoveryClient.StartDiscoveryAsync((string deviceIp) => {
+            var discoveryTask = discoveryClient.StartDiscoveryAsync((string deviceIp) =>
+            {
                 DiscoveredDevices.Add(new DeviceInfo(deviceIp));
             });
             Log += "发现请求已发送\n";
 
             // 开始监听响应
             //_ = ListenForResponsesAsync(_discoverCts.Token);
-            
-
-            // 设置10秒超时
-            await Task.Delay(TimeSpan.FromSeconds(10));
-
+            discoveryWaitCancellationTokenSource = new CancellationTokenSource();
+            try
+            {
+                // 设置5秒超时
+                await Task.Delay(TimeSpan.FromSeconds(5), discoveryWaitCancellationTokenSource.Token);
+            }
+            catch (OperationCanceledException)
+            {
+                if (!discoveryWaitCancellationTokenSource.IsCancellationRequested)
+                {
+                    StatusMessage = "搜索超时";
+                    Log += "搜索操作超时\n";
+                }
+            }
             discoveryClient.StopDiscovery();
 
             StatusMessage = $"发现完成，找到 {DiscoveredDevices.Count} 台设备";
             Log += $"设备发现完成，共找到 {DiscoveredDevices.Count} 台设备\n";
         }
-        catch (OperationCanceledException)
-        {
-            StatusMessage = "搜索超时";
-            Log += "搜索操作超时\n";
-        }
+
         catch (Exception ex)
         {
             StatusMessage = "发生错误" + $"错误: {ex.Message}\n";
@@ -97,6 +106,12 @@ public partial class MainViewModel : ViewModelBase
         DiscoveredDevices.Clear();
         Log = "";
         StatusMessage = "已清除结果";
+    }
+
+    [RelayCommand]
+    private void StopDiscoveryWait()
+    {
+        discoveryWaitCancellationTokenSource.Cancel();
     }
 }
 public partial class DeviceInfo : ObservableObject
