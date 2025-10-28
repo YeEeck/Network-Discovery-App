@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 
@@ -66,15 +67,36 @@ public class DiscoveryClient : IDisposable
 
     private async Task SendDiscoveryBroadcast()
     {
-        using var sender = new UdpClient();
-        sender.EnableBroadcast = true;
 
         byte[] data = Encoding.ASCII.GetBytes("DISCOVERY");
-        await sender.SendAsync(
-            data,
-            data.Length,
-            new IPEndPoint(IPAddress.Broadcast, _discoveryPort)
-        );
+
+        // 获取所有网络接口
+        foreach (var ni in NetworkInterface.GetAllNetworkInterfaces())
+        {
+            // 筛选出想要的类型、处于活动状态、并且支持IP的接口
+            if (ni.NetworkInterfaceType == NetworkInterfaceType.Ethernet && ni.OperationalStatus == OperationalStatus.Up)
+            {
+                // 遍历该接口上的所有IP配置
+                foreach (var ip in ni.GetIPProperties().UnicastAddresses)
+                {
+                    // 筛选出IPv4地址
+                    if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        var localEndPoint = new IPEndPoint(ip.Address, 0);
+                        using var sender = new UdpClient(localEndPoint);
+                        sender.EnableBroadcast = true;
+                        await sender.SendAsync(
+                            data,
+                            data.Length,
+                            new IPEndPoint(IPAddress.Broadcast, _discoveryPort)
+                        );
+                    }
+                }
+            }
+        }
+
+
+
     }
 
     private async Task ReceiveResponsesAsync(
